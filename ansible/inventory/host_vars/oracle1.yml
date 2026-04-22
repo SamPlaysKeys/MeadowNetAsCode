@@ -1,0 +1,10 @@
+# Oracle1 Variables
+
+target_branch: main # Specify which branch to target with this host.
+
+# Specify the tailnet for the device
+tailnet_domain: samplayskeys.ts.net
+
+# Include the containers to install on this machine
+containers:
+  - uptimekuma

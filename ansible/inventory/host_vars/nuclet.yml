@@ -1,0 +1,17 @@
+# Nuclet Variables
+
+target_branch: main # Specify which branch to target with this host.
+
+# Specify the tailnet for the device
+tailnet_domain: samplayskeys.ts.net
+
+# Include the containers to install on this machine
+containers:
+  - docktail
+# - miniflux_scaletail
+  - tsflow
+  - vault
+  - tsidp
+# - uptimekuma
+# - tailbench
+# - arr-suite

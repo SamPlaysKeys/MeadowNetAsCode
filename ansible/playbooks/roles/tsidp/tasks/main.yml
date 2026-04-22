@@ -1,0 +1,15 @@
+---
+- name: Template .env file for tsflow
+  ansible.builtin.template:
+    src: env.j2
+    dest: "{{ role_path }}/files/.env"
+
+- name: Deploy tsidp container via Docker Compose
+  community.docker.docker_compose_v2:
+    project_src: "{{ role_path }}/files"
+    state: present
+
+- name: Clean up .env file
+  ansible.builtin.file:
+    path: "{{ role_path }}/files/.env"
+    state: absent

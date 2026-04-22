@@ -1,0 +1,73 @@
+name: Deploy Docker Containers via Ansible
+
+on:
+  workflow_dispatch:
+  push:
+    branches:
+      - '**'
+    paths:
+      - 'ansible/**'
+  pull_request:
+    branches:
+      - '**'
+    paths:
+      - 'ansible/**'
+
+jobs:
+  ansible-deploy:
+    runs-on: self-hosted
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Install Dependencies
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y ansible
+
+      - name: Install Ansible Docker collection
+        run: ansible-galaxy collection install community.docker
+
+      - name: Run Ansible (Check Mode) for PRs
+        if: github.event_name == 'pull_request'
+        id: ansible_check
+        env:
+          GITHUB_EVENT_NAME: ${{ github.event_name }}
+          GITHUB_BASE_REF: ${{ github.base_ref }}
+          GITHUB_REF_NAME: ${{ github.head_ref }}
+          ANSIBLE_VAULT_PASSWORD: ${{ secrets.ANSIBLE_VAULT_PASSWORD }}
+        run: |
+          rm -f .vault_pass
+          echo $ANSIBLE_VAULT_PASSWORD > .vault_pass
+          ansible-playbook ansible/playbooks/deploy.yml -i ansible/inventory/ --vault-password-file .vault_pass --check --diff > pr_diff.txt 2>&1
+          rm -f .vault_pass
+          
+          EOF=$(dd if=/dev/urandom bs=15 count=1 status=none | base64)
+          echo "diff<<$EOF" >> $GITHUB_OUTPUT
+          cat pr_diff.txt >> $GITHUB_OUTPUT
+          echo "$EOF" >> $GITHUB_OUTPUT
+
+      - name: Comment on PR with Check Mode Diff
+        if: github.event_name == 'pull_request' && steps.ansible_check.outputs.diff != ''
+        uses: actions/github-script@v7
+        with:
+          script: |
+            const diffOutput = `${{ steps.ansible_check.outputs.diff }}`;
+            const body = `### Ansible Deployment Check\nHere are the proposed changes from Check Mode:\n\`\`\`diff\n${diffOutput}\n\`\`\``;
+            github.rest.issues.createComment({
+              issue_number: context.issue.number,
+              owner: context.repo.owner,
+              repo: context.repo.repo,
+              body: body
+            })
+
+      - name: Run Ansible (Deploy)
+        if: github.event_name != 'pull_request'
+        env:
+          GITHUB_EVENT_NAME: ${{ github.event_name }}
+          GITHUB_REF_NAME: ${{ github.ref_name }}
+          ANSIBLE_VAULT_PASSWORD: ${{ secrets.ANSIBLE_VAULT_PASSWORD }}
+        run: |
+          echo "$ANSIBLE_VAULT_PASSWORD" > .vault_pass
+          ansible-playbook ansible/playbooks/deploy.yml -i ansible/inventory/ --vault-password-file .vault_pass
+          rm -f .vault_pass

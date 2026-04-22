@@ -1,0 +1,23 @@
+services:
+  vault:
+    image: ${VAULT_IMAGE}
+    container_name: ${VAULT_CONTAINER_NAME}
+    restart: unless-stopped
+    cap_add:
+      - IPC_LOCK
+    ports:
+      - "127.0.0.1:8200:8200"
+    volumes:
+      - ${VAULT_CONFIG_DIR}:/vault/config
+      - ${VAULT_DATA_DIR}:/vault/data
+      - ${VAULT_LOGS_DIR}:/vault/logs
+    environment:
+      - VAULT_ADDR=http://127.0.0.1:8200
+    labels:
+      - "docktail.service.enable=true"
+      - "docktail.service.name=vault"
+      - "docktail.service.port=8200"
+      - "docktail.service.protocol=http"
+      - "docktail.service.service-port=443"
+      - "docktail.service.service-protocol=https"
+    command: vault server -config=/vault/config/vault.hcl

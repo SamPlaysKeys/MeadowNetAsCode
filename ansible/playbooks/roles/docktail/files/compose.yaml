@@ -1,0 +1,7 @@
+services:
+  docktail:
+    image: ghcr.io/marvinvr/docktail:latest
+    restart: unless-stopped
+    volumes:
+      - /var/run/docker.sock:/var/run/docker.sock:ro
+      - /var/run/tailscale/tailscaled.sock:/var/run/tailscale/tailscaled.sock

@@ -1,0 +1,23 @@
+services:
+  tsflow:
+    image: ghcr.io/rajsinghtech/tsflow:latest
+    container_name: tsflow
+    ports:
+      - "32188:32188"
+    # volumes:
+    #   - /DATA/AppData/tsflow:/app/data
+    environment:
+      - TAILSCALE_OAUTH_CLIENT_ID=${OAUTH_CLIENT_ID}
+      - TAILSCALE_OAUTH_CLIENT_SECRET=${OAUTH_CLIENT_SECRET}
+      - PUID=1000
+      - PGID=1000
+      - PORT=32188
+    restart: unless-stopped
+    labels:
+      - "docktail.service.enable=true"
+      - "docktail.service.name=tsflow"
+      - "docktail.service.port=32188"
+      - "docktail.service.protocol=http"
+      - "docktail.service.service-port=80"
+      - "docktail.service.service-protocol=http"
+    user: "root"

@@ -1,0 +1,33 @@
+---
+- name: Deploy Docker Containers
+  hosts: homelab
+  gather_facts: false
+  tasks:
+    - name: Show host context
+      debug:
+        msg:
+          host: "{{ inventory_hostname }}"
+          target_branch: "{{ target_branch | default('UNDEF') }}"
+          current_branch: "{{ lookup('env', 'GITHUB_REF_NAME') | default('local', true) }}"
+          containers: "{{ containers | default('UNDEF') }}"
+
+    - name: Skip host if branch doesn't match
+      meta: end_host
+      when:
+        - target_branch is defined
+        - lookup('env', 'GITHUB_REF_NAME') | default('') | length > 0
+        - target_branch != lookup('env', 'GITHUB_REF_NAME')
+
+    - name: Ensure Docker and dependencies are installed
+      ansible.builtin.package:
+        name:
+          - python3-pip
+          - docker.io
+          - docker-compose-plugin
+        state: present
+      become: true
+
+    - name: Include container roles
+      include_role:
+        name: "{{ item }}"
+      loop: "{{ containers | default([]) }}"

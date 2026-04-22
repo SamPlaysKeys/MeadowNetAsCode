@@ -1,0 +1,15 @@
+---
+- name: Create empty .env file for docktail
+  ansible.builtin.file:
+    path: "{{ role_path }}/files/.env"
+    state: touch
+
+- name: Deploy docktail container via Docker Compose
+  community.docker.docker_compose_v2:
+    project_src: "{{ role_path }}/files"
+    state: present
+
+- name: Clean up .env file
+  ansible.builtin.file:
+    path: "{{ role_path }}/files/.env"
+    state: absent

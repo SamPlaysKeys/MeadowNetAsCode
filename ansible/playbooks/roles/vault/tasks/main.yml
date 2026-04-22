@@ -1,0 +1,54 @@
+---
+- name: Deploy Vault
+  become: true
+  block:
+    - name: Ensure Vault directories exist
+      ansible.builtin.file:
+        path: "{{ vault_dir }}"
+        state: directory
+        owner: root
+        group: root
+        mode: "0777"
+      loop:
+        - "{{ vault_docker_project_dir }}"
+        - "{{ vault_config_dir }}"
+        - "{{ vault_data_dir }}"
+        - "{{ vault_logs_dir }}"
+      loop_control:
+        loop_var: vault_dir
+
+    - name: Render vault.hcl
+      ansible.builtin.template:
+        src: vault.hcl.j2
+        dest: "{{ vault_config_dir }}/vault.hcl"
+        owner: root
+        group: root
+        mode: "0644"
+
+    - name: Copy Docker Compose file
+      ansible.builtin.copy:
+        src: compose.yml
+        dest: "{{ vault_docker_project_dir }}/{{ vault_compose_filename }}"
+        owner: root
+        group: root
+        mode: "0644"
+
+    - name: Start Vault stack
+      community.docker.docker_compose_v2:
+        project_src: "{{ vault_docker_project_dir }}"
+        files:
+          - "{{ vault_compose_filename }}"
+        state: present
+      environment:
+        VAULT_IMAGE: "{{ vault_image }}"
+        VAULT_CONTAINER_NAME: "{{ vault_container_name }}"
+        VAULT_CONFIG_DIR: "{{ vault_config_dir }}"
+        VAULT_DATA_DIR: "{{ vault_data_dir }}"
+        VAULT_LOGS_DIR: "{{ vault_logs_dir }}"
+
+    - name: Wait for Vault to listen locally
+      ansible.builtin.wait_for:
+        host: 127.0.0.1
+        port: 8200
+        delay: 2
+        timeout: 60

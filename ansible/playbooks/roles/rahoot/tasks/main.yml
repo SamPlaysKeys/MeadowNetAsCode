@@ -1,0 +1,5 @@
+---
+- name: Deploy rahoot container via Docker Compose
+  community.docker.docker_compose_v2:
+    project_src: "{{ role_path }}/files"
+    state: present

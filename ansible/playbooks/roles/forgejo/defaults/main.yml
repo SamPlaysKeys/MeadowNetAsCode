@@ -1,0 +1,2 @@
+vault_forgejo_hostname: forgejo
+vault_forgejo_ts_cert_domain: "forgejo.{{ tailnet_domain }}"

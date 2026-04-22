@@ -1,0 +1,18 @@
+services:
+  rahoot:
+    image: ralex91/rahoot:latest
+    ports:
+      - "5150:5150"
+      - "5151:5151"
+    volumes:
+      - /DATA/AppData/Rahoot/config:/app/config # Path to your game config
+    environment:
+      - WEB_ORIGIN=http://localhost:5150
+      - SOCKET_URL=http://localhost:5151
+    labels:
+      - "docktail.service.enable=true"
+      - "docktail.service.name=rahoot"
+      - "docktail.service.port=5150"
+      - "docktail.service.protocol=http"
+      - "docktail.service.service-port=80"
+      - "docktail.service.service-protocol=http"
