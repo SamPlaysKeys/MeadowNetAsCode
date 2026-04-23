@@ -2,6 +2,8 @@
 - name: Deploy Docker Containers
   hosts: homelab
   gather_facts: false
+  vars_files:
+    - /tmp/vault.yml
   tasks:
     - name: Show host context
       debug:
